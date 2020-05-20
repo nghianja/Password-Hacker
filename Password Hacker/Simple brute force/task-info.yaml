@@ -1,0 +1,122 @@
+type: edu
+custom_name: stage2
+files:
+- name: tests.py
+  visible: false
+  text: |
+    from hstest.stage_test import StageTest
+    from hstest.test_case import TestCase
+    from hstest.check_result import CheckResult
+    from threading import Thread
+    from time import sleep
+    from itertools import product
+    import socket
+    import random
+
+    CheckResult.correct = lambda: CheckResult(True, '')
+    CheckResult.wrong = lambda feedback: CheckResult(False, feedback)
+
+    abc = 'abcdefghijklmnopqrstuvwxyz1234567890'
+
+
+    def generate_password():
+        index = 1
+        while True:
+            abc = 'abcdefghijklmnopqrstuvwxyz1234567890'
+            yield from product(abc, repeat=index)
+            index += 1
+
+
+    def random_password():
+        '''function - generating random password of length from 2 to 3'''
+        return ''.join(random.choice(abc) for i in range(random.randint(2, 3)))
+
+
+    class Hacking(StageTest):
+
+        def __init__(self, module):
+            super().__init__(module)
+            self.ready = False
+            self.sock = None
+            self.serv = None
+            self.connected = False
+            self.message = []
+            self.password = None
+
+        def start_server(self):
+            self.serv = Thread(target=lambda: self.server())
+            self.serv.start()
+            self.ready = False
+            while not self.ready:
+                sleep(0.1)  # socket needs to be set up before test
+
+        def stop_server(self):
+            self.sock.close()
+            self.serv.join()
+
+        def server(self):
+            '''function - creating a server and answering clients'''
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            self.sock.bind(('localhost', 9090))
+            self.ready = True
+            try:
+                self.sock.listen(1)
+                conn, addr = self.sock.accept()
+                self.connected = True
+                while True:
+                    data = conn.recv(1024)
+                    self.message.append(data.decode('utf8'))
+                    if len(self.message) > 1_000_000:
+                        conn.send('Too many attempts to connect!'.encode('utf8'))
+                        break
+                    if not data:
+                        break
+                    if data.decode('utf8') == self.password:
+                        conn.send('Connection success!'.encode('utf8'))
+                    else:
+                        conn.send('Wrong password!'.encode('utf8'))
+                conn.close()
+            except:
+                pass
+
+        def generate(self):
+            self.message = []
+            self.password = random_password()
+            self.start_server()
+            return [
+                TestCase(args=['localhost', '9090'],
+                         attach=[self.password])
+            ]
+
+        def check(self, reply, attach):
+
+            if not self.connected:
+                return CheckResult.wrong("You didn't connect to the server")
+
+            real_password = attach[0]
+            if reply.split('\n')[0] != real_password:
+                return CheckResult.wrong(f'The password you printed is not correct. The password is "{real_password}"')
+            success = True
+            for i in generate_password():
+                if len(i) == len(real_password):
+                    break
+                try:
+                    self.message.remove(''.join(i))
+                except ValueError:
+                    success = False
+                    break
+            if success:
+                return CheckResult.correct()
+            return CheckResult.wrong(
+                'Your generator algorithm does not include all the variants')
+
+
+    if __name__ == '__main__':
+        test = Hacking('hacking.hack')
+        test.run_tests()
+        test.stop_server()
+  learner_created: false
+feedback_link: https://hyperskill.org/projects/80/stages/443/implement
+status: Unchecked
+record: -1

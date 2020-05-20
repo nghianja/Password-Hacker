@@ -1,0 +1,8 @@
+type: framework
+content:
+- Server connection
+- Simple brute force
+- Dictionary brute force
+- Catching exception
+- Time vulnerability
+current_task: 0

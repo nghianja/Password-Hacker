@@ -1,0 +1,72 @@
+<h2>Description</h2>
+
+<p>The server is becoming smarter along with your hacking program. Now the admin has implemented a security system by login and password. In order to access the site with admin privileges, you need to know the admin's login and password. Fortunately, we have a dictionary of different logins and a very interesting vulnerability. You need to improve your program once again to hack the new system.</p>
+
+<p>Also, now the admin has made a complex password that is guaranteed to be absent in the databases since it's randomly generated from several characters.</p>
+
+<p>The server now uses JSON to send messages.</p>
+
+<p>First of all, you should adjust your program so that it can send the combination of login and password in JSON format to the server. Your request should now look like this:</p>
+
+<pre><code class="language-no-highlight">{
+    "login": "admin",
+    "password": "12345678"
+}
+</code></pre>
+
+<p>In case of the wrong password, the response you receive looks like this:</p>
+
+<pre><code class="language-no-highlight">{
+    "result": "Wrong login!"
+}</code></pre>
+
+<p>If you got the login right but failed to find the password, you get this:</p>
+
+<pre><code class="language-no-highlight">{
+    "result": "Wrong password!"
+}</code></pre>
+
+<p>If some exception happens, you'll see this result:</p>
+
+<pre><code class="language-no-highlight">{
+    "result": "Exception happened during login"
+}</code></pre>
+
+<p>When you finally succeed in finding both the login and the password, you'll see the following:</p>
+
+<pre><code class="language-no-highlight">{
+    "result": "Connection success!"
+}</code></pre>
+
+<p>Use the <a target="_blank" href="https://stepik.org/media/attachments/lesson/255258/logins.txt" rel="noopener noreferrer nofollow">dictionary of typical admin logins</a>. Since you don’t know the login, you should try different variants from the dictionary as you did at the previous stage with the passwords. You will know that the login is correct when you get the ‘wrong password’ result instead of ‘wrong login’. As for passwords, they’ve become yet harder, so a simple dictionary is no longer enough. Fortunately, a vulnerability has been found: the ‘exception’ message pops up when the symbols you tried for the password match the beginning of the correct one. </p>
+
+<h2>Objectives</h2>
+
+<p>Your algorithm is the following:</p>
+
+<ol>
+	<li>Try all logins with an empty password.</li>
+	<li>When you find the login, try out every possible password of length 1.</li>
+	<li>When an exception occurs, you know that you found the first letter of the password.</li>
+	<li>Use the found login and the found letter to find the second letter of the password.</li>
+	<li>Repeat until you receive the ‘success’ message.</li>
+</ol>
+
+<p>Finally, your program should print the combination of login and password in JSON format. The examples show two ways of what the output can look like. See the hint to find out how to convert a dict object into a JSON string.</p>
+
+<h2>Examples</h2>
+
+<p>The greater-than symbol followed by a space (<code class="java">&gt; </code>) represents the user input. Note that it's not part of the input.</p>
+
+<p><strong>Example 1:</strong></p>
+
+<pre><code class="language-no-highlight">&gt; python hack.py localhost 9090
+{
+    "login" : "superuser",
+    "password" : "aDgT9tq1PU0"
+}</code></pre>
+
+<p><strong>Example 2:</strong></p>
+
+<pre><code class="language-no-highlight">&gt; python hack.py localhost 9090
+{"login": "new_user", "password": "Sg967s"}</code></pre>

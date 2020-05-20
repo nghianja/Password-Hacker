@@ -1,0 +1,28 @@
+<h2>Description</h2>
+
+<p>The admin noticed someone sneaking around the site with admin rights and came up with a password. Now to log in as an admin, you need to enter the password first. Maybe the admin has set a relatively easy and short password so that it is easy to remember? Let's try to brute force all possible passwords to enter the site!</p>
+
+<p>So far the program is very simplistic: it’s time to improve it so that it can generate different variants of the password and then try each one. The admin of the server doesn’t hide the information that passwords vary in length and may include letters from <code class="java">a</code> to <code class="java">z</code> and numbers from <code class="java">0</code> to <code class="java">9</code>. You should start with <code class="java">a,b,c,....,z,0,1,..aa,ab,ac,ad</code> and continue until your password is correct. It’s very important to try all the variants of every length because otherwise your program risks never finding the password!</p>
+
+<p>If the password is correct, you will receive the “<code class="java">Connection success!</code>” message. Otherwise, you will see the “<code class="java">Wrong password!</code>” message. The server cannot receive more than a million attempts, so if your program works indefinitely, you will see the unfortunate message “<code class="java">Too many attempts</code>”.</p>
+
+<h2>Objectives</h2>
+
+<p>In this stage, you should write a program that:</p>
+
+<ol>
+	<li>Parses the command line and gets two arguments that are IP address and port.</li>
+	<li>Tries different passwords until it finds the correct one.</li>
+	<li>Prints the password it found.</li>
+</ol>
+
+<p>Note that you can connect to the server only once and then send messages many times. Don't connect to the server before sending every message.</p>
+
+<p>Also, note that here and throughout the project, the password is different every time you check your code.</p>
+
+<h2>Example</h2>
+
+<p>The greater-than symbol followed by a space (<code class="java">&gt; </code>) represents the user input. Note that it's not part of the input.</p>
+
+<pre><code class="language-no-highlight">&gt; python hack.py localhost 9090
+pass</code></pre>

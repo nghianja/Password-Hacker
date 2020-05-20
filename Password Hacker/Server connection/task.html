@@ -1,0 +1,45 @@
+<h2>Description</h2>
+
+<p>Imagine some admin who runs a website on the Internet. The site is becoming very popular, and a lot of people register. Filling in their profiles, they leave some information there that is not meant to be public, for example, information about their credit cards. </p>
+
+<p>The admin completely forgot about the security of the site, so now you can log in with admin privileges without even having a login and password!</p>
+
+<p>The first task of this project is to go to the admin's site; it will immediately give out all the secret information. Remember, as soon as you enter the site as an admin, you will automatically obtain all the private data of the site. It will get harder: the tasks of all other stages of the project will be to crack the admin password. Good luck!</p>
+
+<p>Your program should connect to the server using an IP address and a port from the command line arguments. You can use socket module to create this program.</p>
+
+<h2>Objectives</h2>
+
+<p>Your program will receive command line arguments in this order:</p>
+
+<ol>
+	<li>IP address</li>
+	<li>port</li>
+	<li>message for sending</li>
+</ol>
+
+<p>The algorithm is the following:</p>
+
+<ol>
+	<li>Create a new socket.</li>
+	<li>Connect to a host and a port using the socket.</li>
+	<li>Send a message from the third command line argument to the host using the socket.</li>
+	<li>Receive the server’s response.</li>
+	<li>Print the server’s response.</li>
+	<li>Close the socket.</li>
+</ol>
+
+<h2>Examples</h2>
+
+<p>The greater-than symbol followed by a space (<code class="java">&gt; </code>) represents the user input. Note that it's not part of the input.</p>
+
+<p><strong>Example 1:</strong></p>
+
+<pre><code class="language-no-highlight">&gt; python hack.py localhost 9090 password
+Wrong password!</code></pre>
+
+<p><strong>Example 2:</strong></p>
+
+<pre><code class="language-no-highlight">&gt; python hack.py 127.0.0.1 9090 qwerty
+Connection Success!
+</code></pre>
