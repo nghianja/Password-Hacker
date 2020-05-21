@@ -12,6 +12,7 @@ CheckResult.wrong = lambda feedback: CheckResult(False, feedback)
 
 abc = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
 
+
 logins_list = [
     'admin', 'Admin', 'admin1', 'admin2', 'admin3',
     'user1', 'user2', 'root', 'default', 'new_user',
@@ -36,7 +37,7 @@ def random_login():
     return random.choice(list(logins()))
 
 
-class Hacking(StageTest):
+class TimeVulnerability(StageTest):
 
     def __init__(self, module):
         super().__init__(module)
@@ -68,15 +69,12 @@ class Hacking(StageTest):
         try:
             self.sock.listen(1)
             conn, addr = self.sock.accept()
-            self.connected = True
             while True:
                 data = conn.recv(1024)
                 self.message.append(data.decode('utf8'))
-                if len(self.message) > 1_000_000:
-                    conn.send(
-                        json.dumps({
-                            'result': 'Too many attempts to connect!'
-                        }).encode('utf8'))
+                self.connected = True
+                if len(self.message) > 100_000_000:
+                    conn.send(json.dumps({'result': 'Too many attempts to connect!'}).encode('utf8'))
                     break
                 if not data:
                     break
@@ -90,21 +88,13 @@ class Hacking(StageTest):
 
                 if login_ == self.login:
                     if self.password == password_:
-                        conn.send(
-                            json.dumps({
-                                'result': 'Connection success!'
-                            }).encode('utf8'))
+                        conn.send(json.dumps({'result': 'Connection success!'}).encode('utf8'))
                         break
                     elif self.password.startswith(password_):
-                        conn.send(
-                            json.dumps({
-                                'result': 'Exception happened during login'
-                            }).encode('utf8'))
+                        sleep(0.1)
+                        conn.send(json.dumps({'result': 'Wrong password!'}).encode('utf8'))
                     else:
-                        conn.send(
-                            json.dumps({
-                                'result': 'Wrong password!'
-                            }).encode('utf8'))
+                        conn.send(json.dumps({'result': 'Wrong password!'}).encode('utf8'))
                 else:
                     conn.send(json.dumps({'result': 'Wrong login!'}).encode('utf8'))
             conn.close()
@@ -117,10 +107,8 @@ class Hacking(StageTest):
         self.login = random_login()
         self.start_server()
         return [
-            TestCase(
-                args=['localhost', '9090'],
-                attach=[self.password, self.login]
-            )
+            TestCase(args=['localhost', '9090'],
+                     attach=[self.password, self.login])
         ]
 
     def check(self, reply, attach):
@@ -146,27 +134,23 @@ class Hacking(StageTest):
         for i in self.message:
             log = json.loads(i)['login']
             pas = json.loads(i)['password']
-            if find_first_letter is False and len(
-                    pas
-            ) == 1 and log == real_login and real_password.startswith(pas):
+            if find_first_letter is False and len(pas) == 1 and log == real_login and real_password.startswith(pas):
                 find_first_letter = True
             if find_first_letter is True:
                 if log != real_login:
-                    return CheckResult.wrong(
-                        'You should find a correct login and then use only it')
+                    return CheckResult.wrong('You should find a correct login and then use only it')
                 if pas[0] != real_password[0]:
                     return CheckResult.wrong(
-                        'When you find a first letter you should then start your passwords with it'
-                    )
+                        'When you find a first letter you should then start your passwords with it')
             if len(pas) > 1:
                 if pas[0:-1] != real_password[0:len(pas[0:-1]) - 1]:
                     return CheckResult.wrong(
-                        'You have already found the first %d letters of the password. Use them as a beginning'
-                        % len(pas[0:-1]))
+                        'You have already found the first %d letters of the password. Use them as a beginning' % len(
+                            pas[0:-1]))
             return CheckResult.correct()
 
 
 if __name__ == '__main__':
-    test = Hacking('hacking.hack')
+    test = TimeVulnerability('hacking.hack')
     test.run_tests()
     test.stop_server()
