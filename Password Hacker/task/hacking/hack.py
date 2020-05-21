@@ -14,8 +14,7 @@ def test_credentials(sock, login, password):
 
 
 def read_dictionary(filename):
-    with open('/Users/professional/PycharmProjects/Password Hacker/Password Hacker/task/hacking/' + filename,
-              'r') as infile:
+    with open(filename, 'r') as infile:
         for line in infile:
             yield line.rstrip('\n')
 
