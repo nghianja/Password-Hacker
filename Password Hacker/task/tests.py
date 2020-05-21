@@ -3,7 +3,6 @@ from hstest.test_case import TestCase
 from hstest.check_result import CheckResult
 from threading import Thread
 from time import sleep
-from itertools import product
 import socket
 import random
 
@@ -13,17 +12,33 @@ CheckResult.wrong = lambda feedback: CheckResult(False, feedback)
 abc = 'abcdefghijklmnopqrstuvwxyz1234567890'
 
 
+passwords = [
+    'chance', 'frankie', 'killer', 'forest', 'penguin'
+    'jackson', 'rangers', 'monica', 'qweasdzxc', 'explorer'
+    'gabriel', 'bollocks', 'simpsons', 'duncan', 'valentin',
+    'classic', 'titanic', 'logitech', 'fantasy', 'scotland',
+    'pamela', 'christin', 'birdie', 'benjamin', 'jonathan',
+    'knight', 'morgan', 'melissa', 'darkness', 'cassie'
+]
+
+
 def generate_password():
-    index = 1
-    while True:
-        abc = 'abcdefghijklmnopqrstuvwxyz1234567890'
-        yield from product(abc, repeat=index)
-        index += 1
+    '''function - generator of all passwords from dictionary'''
+    for password in passwords:
+        yield password.rstrip().lower()
 
 
 def random_password():
-    '''function - generating random password of length from 2 to 3'''
-    return ''.join(random.choice(abc) for i in range(random.randint(2, 3)))
+    '''function - generating random password from dictionary'''
+    pas = random.choice(list(generate_password()))
+    uppers = []
+    for i in range(len(pas)):
+        uppers.append(random.randint(0, 1))
+
+    return ''.join(
+        pas[j].upper() if uppers[j] == 1
+        else pas[j]
+        for j in range(len(pas)))
 
 
 class Hacking(StageTest):
@@ -68,6 +83,7 @@ class Hacking(StageTest):
                     break
                 if data.decode('utf8') == self.password:
                     conn.send('Connection success!'.encode('utf8'))
+                    break
                 else:
                     conn.send('Wrong password!'.encode('utf8'))
             conn.close()
@@ -78,32 +94,25 @@ class Hacking(StageTest):
         self.message = []
         self.password = random_password()
         self.start_server()
-        return [
-            TestCase(args=['localhost', '9090'],
-                     attach=[self.password])
-        ]
+        return [TestCase(args=['localhost', '9090'],
+                         attach=[self.password])]
 
     def check(self, reply, attach):
+        self.stop_server()
 
         if not self.connected:
             return CheckResult.wrong("You didn't connect to the server")
 
         real_password = attach[0]
+        printed_password = reply.split('\n')[0]
         if reply.split('\n')[0] != real_password:
-            return CheckResult.wrong(f'The password you printed is not correct. The password is "{real_password}"')
-        success = True
-        for i in generate_password():
-            if len(i) == len(real_password):
-                break
-            try:
-                self.message.remove(''.join(i))
-            except ValueError:
-                success = False
-                break
-        if success:
-            return CheckResult.correct()
-        return CheckResult.wrong(
-            'Your generator algorithm does not include all the variants')
+            return CheckResult.wrong(
+                'The password you printed is not correct\n'
+                'You printed: \"' + printed_password + '\"\n'
+                'Correct password: \"' + real_password + '\"'
+            )
+
+        return CheckResult.correct()
 
 
 if __name__ == '__main__':
